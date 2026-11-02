@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" font-family="IBM Plex Sans, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0l10 5-10 5z" fill="#0b2e4a"/></marker>
+  </defs>
+  <rect width="800" height="340" fill="#eef3f6"/>
+  <!-- ECP: cuff outside the limb, force directed inward from outside -->
+  <g transform="translate(200 165)">
+    <circle r="128" fill="#0b2e4a"/>
+    <circle r="102" fill="#fff"/>
+    <circle r="96" fill="#dfe7ec"/>
+    <circle r="30" fill="#fff" stroke="#c8291f" stroke-width="5"/>
+    <g stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M0-122v14M0 108v14M-122 0h14M108 0h14M-86-86l10 10M86 86l-10-10M86-86l-10 10M-86 86l10-10"/></g>
+    <g stroke="#0b2e4a" stroke-width="3" marker-end="url(#a)"><path d="M0-92v48"/><path d="M0 92v-48"/><path d="M-92 0h48"/><path d="M92 0h-48"/></g>
+  </g>
+  <!-- MCP: the muscle itself contracts around the vessel -->
+  <g transform="translate(600 165)">
+    <circle r="128" fill="#dfe7ec"/>
+    <circle r="112" fill="#fff"/>
+    <circle r="104" fill="#c8291f" opacity=".82"/>
+    <g fill="none" stroke="#fff" stroke-width="1.5" opacity=".65"><circle r="94"/><circle r="84"/><circle r="74"/><circle r="64"/><circle r="54"/></g>
+    <circle r="30" fill="#fff" stroke="#0b2e4a" stroke-width="5"/>
+    <rect x="-24" y="-140" width="48" height="16" fill="#0b2e4a"/>
+    <rect x="-24" y="124" width="48" height="16" fill="#0b2e4a"/>
+    <g stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M0-96v48M0 96v-48M-96 0h48M96 0h-48"/><path d="M-6-56l6 8 6-8M-6 56l6-8 6 8M-56-6l8 6-8 6M56-6l-8 6 8 6" fill="none"/></g>
+  </g>
+  <g font-size="30" font-weight="600" fill="#0b2e4a" text-anchor="middle"><text x="40" y="44" text-anchor="start">ECP</text><text x="440" y="44" text-anchor="start">MCP</text></g>
+</svg>

@@ -1,0 +1,42 @@
+---
+import { render } from 'astro:content';
+import { LOCALES, entry, formatDate, inLang, slugOf, type Lang } from '../../../i18n';
+import Prose from '../../../layouts/Prose.astro';
+
+// Articles may exist in only some languages, for example a piece written in Georgian alone.
+export async function getStaticPaths() {
+  const all = (await Promise.all(LOCALES.map((lang) => inLang('articles', lang).then((list) => list.map((article) => ({ lang, article })))))).flat();
+  return all.map(({ lang, article }) => ({
+    params: { lang: lang === 'en' ? undefined : lang, slug: slugOf(article.id) },
+    props: { lang, article, langs: all.filter((a) => slugOf(a.article.id) === slugOf(article.id)).map((a) => a.lang) },
+  }));
+}
+const { article, langs } = Astro.props;
+const lang = Astro.props.lang as Lang;
+const ui = (await entry('ui', lang, 'ui')).data;
+const { Content, headings } = await render(article);
+const d = article.data;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': d.reviewStatus === 'peer-reviewed' ? 'ScholarlyArticle' : 'Article',
+  headline: d.title,
+  description: d.description,
+  inLanguage: lang,
+  datePublished: d.date.toISOString().slice(0, 10),
+  author: { '@type': 'Person', name: d.author },
+};
+---
+<Prose {...d} {headings} {jsonLd} {langs}>
+  <div slot="meta" class="meta">
+    <p>{d.author} · {formatDate(d.date, lang)}</p>
+    {d.reviewStatus === 'author-publication' && <p><strong>{ui.authorNoticeTitle}</strong> {ui.authorNotice}</p>}
+    {d.disclosure && <p><strong>{ui.disclosureTitle}</strong> {d.disclosure}</p>}
+  </div>
+  <Content />
+</Prose>
+
+<style>
+  .meta { margin-top: 1.5rem; font-size: .9375rem; color: #c7d6e0; max-width: 62ch; }
+  .meta p { margin: 0 0 .4rem; }
+  .meta strong { color: #fff; font-weight: 600; }
+</style>

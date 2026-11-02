@@ -1,0 +1,40 @@
+---
+import { CYCLE, QRS, STIM_MS, T_END, ecgPath } from '../ecg';
+
+const { ui } = Astro.props;
+const CYCLES = 3, X = (ms: number) => (ms / (CYCLE * CYCLES)) * 1200;
+const beats = Array.from({ length: CYCLES }, (_, i) => i * CYCLE);
+---
+<figure class="timing">
+  <svg viewBox="0 -8 1200 210" role="img" aria-labelledby="timing-title timing-desc">
+    <title id="timing-title">{ui.figureTitle}</title>
+    <desc id="timing-desc">{ui.figureDescription}</desc>
+    {beats.map((b) => <rect class="systole" x={X(b + QRS - 20)} y="0" width={X(T_END - QRS + 20)} height="196" />)}
+    {[0, 1, 2, 3].map((i) => <line class="tick" x1={X(i * CYCLE)} x2={X(i * CYCLE)} y1="0" y2="196" />)}
+    <text class="phase" x={X(QRS - 12)} y="14">{ui.systole}</text>
+    <text class="phase" x={X(T_END + 8)} y="14">{ui.diastole}</text>
+    <path class="ecg" d={ecgPath(CYCLES, 1200, 92)} />
+    <line class="base" x1="0" x2="1200" y1="168" y2="168" />
+    {beats.map((b) => <rect class="pulse" x={X(b + T_END)} y="138" width={X(STIM_MS)} height="30" />)}
+    <text class="label stim" x={X(T_END + STIM_MS + 12)} y="158">{ui.stimulus}</text>
+    <text class="label" x={X(190)} y="42">ECG</text>
+  </svg>
+  <figcaption><strong>{ui.figureLabel}</strong> {ui.figureCaption}</figcaption>
+</figure>
+
+<style>
+  .timing { margin: 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .systole { fill: var(--tint); }
+  .tick { stroke: var(--rule); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .base { stroke: var(--navy); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  .ecg { fill: none; stroke: var(--navy); stroke-width: 2; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .pulse { fill: var(--signal); }
+  text { font-family: var(--sans); font-size: 13px; fill: var(--muted); }
+  .label { fill: var(--navy); font-weight: 500; }
+  .label.stim { fill: var(--signal); }
+  figcaption { margin-top: .9rem; max-width: 70ch; font-size: .875rem; line-height: 1.5; color: var(--muted); }
+  figcaption strong { color: var(--ink); font-weight: 600; }
+  /* On phones, enlarge and crop to about two beats so the labels stay readable. */
+  @media (max-width: 640px) { .timing { overflow: hidden; } svg { width: 170%; } text { font-size: 24px; } }
+</style>

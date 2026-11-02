@@ -1,0 +1,101 @@
+---
+import '@fontsource-variable/ibm-plex-sans';
+import '@fontsource-variable/source-serif-4';
+import '@fontsource-variable/noto-sans-georgian';
+import '@fontsource-variable/noto-serif-georgian';
+import '../styles/global.css';
+import { LANGUAGE_NAMES, LOCALES, entry, localize, type Lang } from '../i18n';
+
+interface Props { title: string; description: string; reviewed: boolean; jsonLd?: object; langs?: readonly Lang[] }
+const { title, description, reviewed, jsonLd, langs = LOCALES } = Astro.props;
+
+const lang = (Astro.params.lang ?? 'en') as Lang;
+const ui = (await entry('ui', lang, 'ui')).data;
+const NAV = [
+  [ui.navHistory, '/history/'],
+  [ui.navComparison, '/mcp-vs-ecp/'],
+  [ui.navApplications, '/applications/'],
+  [ui.navMethodology, '/methodology/'],
+  [ui.navResults, '/results/'],
+  [ui.navArticles, '/articles/'],
+  [ui.navTraining, '/training/'],
+  [ui.navAbout, '/about/'],
+];
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const path = Astro.url.pathname.slice(base.length).replace(/^\/(ru|ka)(?=\/)/, '');
+const url = (l: Lang) => new URL(base + localize(l, path), Astro.site);
+const fullTitle = path === '/' ? `${ui.siteName} (MCP): ${ui.homeTitleSuffix}` : `${title} | ${ui.siteName}`;
+const ld = jsonLd ?? { '@context': 'https://schema.org', '@type': 'MedicalWebPage', name: title, description, url: url(lang), inLanguage: lang };
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={url(lang)} />
+    {langs.map((l) => <link rel="alternate" hreflang={l} href={url(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={url('en')} />
+    {!reviewed && <meta name="robots" content="noindex" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={ui.siteName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={url(lang)} />
+    <meta property="og:locale" content={lang} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+  </head>
+  <body>
+    <a class="skip" href="#main">{ui.skipLink}</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href={localize(lang, '/')}>
+          <svg viewBox="0 0 32 20" aria-hidden="true"><path d="M0 12h8l2-3 2 3 3-11 3 18 2-7h12" /></svg>
+          {ui.siteName}
+        </a>
+        <details class="languages">
+          <summary aria-label={ui.languageLabel}>{LANGUAGE_NAMES[lang]}</summary>
+          <ul>
+            {langs.map((l) => <li><a href={localize(l, path)} lang={l} hreflang={l} aria-current={l === lang ? 'true' : undefined}>{LANGUAGE_NAMES[l]}</a></li>)}
+          </ul>
+        </details>
+        <nav aria-label={ui.siteName} class="main-nav">
+          {NAV.map(([label, href]) => <a href={localize(lang, href)} aria-current={path.startsWith(href) ? 'page' : undefined}>{label}</a>)}
+        </nav>
+      </div>
+    </header>
+    <main id="main"><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div>
+          <p class="footer-name">{ui.siteName}</p>
+          <p>{ui.footerText}</p>
+        </div>
+        <nav aria-label={ui.footerSite}>
+          <p class="footer-heading">{ui.footerSite}</p>
+          <ul>{NAV.map(([label, href]) => <li><a href={localize(lang, href)}>{label}</a></li>)}</ul>
+        </nav>
+        <nav aria-label={ui.footerLegal}>
+          <p class="footer-heading">{ui.footerLegal}</p>
+          <ul>
+            <li><a href={localize(lang, '/impressum/')}>{ui.navImpressum}</a></li>
+            <li><a href={localize(lang, '/privacy/')}>{ui.navPrivacy}</a></li>
+            <li><a href={localize(lang, '/notice/')}>{ui.navNotice}</a></li>
+            <li><a href="https://pubmed.ncbi.nlm.nih.gov/?term=Lapanashvili+L%5BAuthor%5D" rel="noopener">{ui.pubmedLink}</a></li>
+          </ul>
+        </nav>
+      </div>
+      <div class="wrap footer-bottom">
+        <p>© {new Date().getFullYear()} {ui.siteName}. {ui.rightsReserved}</p>
+      </div>
+    </footer>
+    <script>
+      const menu = document.querySelector<HTMLDetailsElement>('.languages')!;
+      document.addEventListener('click', (e) => { if (!menu.contains(e.target as Node)) menu.open = false; });
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') menu.open = false; });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,107 @@
+---
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import TimingFigure from '../../components/TimingFigure.astro';
+import { entry, formatDate, inLang, langPaths, localize, slugOf, type Lang } from '../../i18n';
+
+export const getStaticPaths = langPaths;
+const lang = Astro.props.lang as Lang;
+const home = (await entry('home', lang, 'home')).data;
+const ui = (await entry('ui', lang, 'ui')).data;
+const latest = (await inLang('articles', lang)).sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
+---
+<Base title={home.title} description={home.description} reviewed={home.reviewed}>
+  <Hero {home} {ui} {lang} />
+
+  <section class="wrap how" aria-labelledby="how">
+    <h2 id="how">{home.howHeading}</h2>
+    <ol class="steps">
+      {home.steps.map((s) => <li><h3>{s.title}</h3><p>{s.text}</p></li>)}
+    </ol>
+    <TimingFigure {ui} />
+  </section>
+
+  <section class="figures-band" aria-labelledby="figures">
+    <div class="wrap">
+      <h2 id="figures">{home.figuresHeading}</h2>
+      <dl class="figures">
+        {home.figures.map((f) => (
+          <div>
+            <dd class="value">{f.value}</dd>
+            <dt>{f.label}</dt>
+            <dd class="source">{f.source}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="note">{home.figuresNote} <a href={localize(lang, '/results/')}>{home.figuresLink}</a></p>
+    </div>
+  </section>
+
+  <section class="wrap explore" aria-labelledby="contents">
+    <h2 id="contents">{home.sectionsHeading}</h2>
+    <ul class="tiles">
+      {home.sections.map((s) => (
+        <li>
+          <a href={localize(lang, s.href)}>
+            <span class="tile-image"><img src={s.image} alt="" loading="lazy" /></span>
+            <span class="tile-title">{s.title}</span>
+            <span class="tile-summary">{s.summary}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  {latest.length > 0 && (
+    <section class="wrap latest" aria-labelledby="latest">
+      <h2 id="latest">{home.latestHeading}</h2>
+      <ol>
+        {latest.map((a) => <li><a href={localize(lang, `/articles/${slugOf(a.id)}/`)}><span>{a.data.title}</span><span>{formatDate(a.data.date, lang)}</span></a></li>)}
+      </ol>
+    </section>
+  )}
+</Base>
+
+<style>
+  section > h2, .figures-band h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); font-weight: 400; letter-spacing: -.02em; color: var(--navy); }
+  .how { padding-top: clamp(3rem, 7vw, 5.5rem); }
+  .steps { list-style: none; counter-reset: step; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; margin: 2.5rem 0 3.5rem; padding: 0; }
+  .steps li { counter-increment: step; border-top: 2px solid var(--navy); padding-top: 1rem; }
+  .steps li::before { content: counter(step); display: block; font-size: 3rem; line-height: 1; font-weight: 300; color: var(--signal); margin-bottom: 1rem; }
+  .steps h3 { font-size: 1.25rem; margin-bottom: .5rem; }
+  .steps p { margin: 0; color: var(--muted); }
+
+  .figures-band { margin-top: clamp(3rem, 7vw, 5.5rem); background: var(--tint); padding-block: clamp(3rem, 6vw, 4.5rem); }
+  .figures { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem; margin: 2.5rem 0 0; }
+  .figures dd { margin: 0; }
+  .value { font-size: clamp(3rem, 6.5vw, 5rem); line-height: 1; letter-spacing: -.04em; font-weight: 300; color: var(--navy); font-feature-settings: 'tnum'; }
+  .figures dt { margin-top: .9rem; line-height: 1.35; font-weight: 500; }
+  .source { margin-top: .6rem !important; font-size: .8125rem; color: var(--muted); line-height: 1.4; }
+  .note { margin: 2.25rem 0 0; padding-top: 1rem; border-top: 1px solid var(--rule); font-size: .875rem; color: var(--muted); }
+
+  .explore { padding-top: clamp(3rem, 7vw, 5.5rem); }
+  .tiles { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2.5rem 2rem; margin: 2.5rem 0 0; padding: 0; }
+  .tiles a { display: block; color: var(--ink); text-decoration: none; }
+  .tile-image { display: block; aspect-ratio: 3 / 2; background: #cfe0ea; overflow: hidden; margin-bottom: .9rem; }
+  .tile-image img { display: block; width: 100%; height: 100%; object-fit: cover; filter: grayscale(1) contrast(1.1); mix-blend-mode: multiply; transition: transform .4s ease; }
+  .tile-image img[src$='.svg'] { object-fit: contain; filter: none; }
+  .tiles a:hover img { transform: scale(1.03); }
+  .tile-title { display: block; font-size: 1.25rem; font-weight: 500; line-height: 1.25; color: var(--navy); }
+  .tiles a:hover .tile-title { text-decoration: underline; text-underline-offset: .18em; text-decoration-thickness: 1px; }
+  .tile-summary { display: block; margin-top: .3rem; color: var(--muted); line-height: 1.4; }
+
+  .latest { padding-top: clamp(3rem, 7vw, 5.5rem); }
+  .latest ol { list-style: none; margin: 2rem 0 0; padding: 0; border-top: 2px solid var(--navy); }
+  .latest li { border-bottom: 1px solid var(--rule); }
+  .latest a { display: flex; justify-content: space-between; gap: 2rem; padding: 1rem 0; color: var(--ink); text-decoration: none; }
+  .latest a span:first-child { font-weight: 500; }
+  .latest a span:last-child { color: var(--muted); white-space: nowrap; }
+  .latest a:hover span:first-child { color: var(--brand); }
+  @media (prefers-reduced-motion: reduce) { .tile-image img { transition: none; } }
+  @media (max-width: 860px) {
+    .steps, .figures { grid-template-columns: 1fr; }
+    .tiles { grid-template-columns: repeat(2, 1fr); gap: 2rem 1rem; }
+    .latest a { display: block; }
+    .latest a span { display: block; }
+  }
+</style>

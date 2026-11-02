@@ -1,0 +1,77 @@
+---
+import { render } from 'astro:content';
+import { entry, inLang, langPaths, slugOf, type Lang } from '../../i18n';
+import Prose from '../../layouts/Prose.astro';
+
+export const getStaticPaths = langPaths;
+const lang = Astro.props.lang as Lang;
+const ui = (await entry('ui', lang, 'ui')).data;
+const page = await entry('pages', lang, 'results');
+const { Content } = await render(page);
+const sites = (await inLang('results', lang)).sort((a, b) => a.data.order - b.data.order);
+const rendered = await Promise.all(sites.map(async (s) => ({ ...s.data, id: slugOf(s.id), Body: (await render(s)).Content })));
+const pubs = (await inLang('publications', lang)).sort((a, b) => b.data.year - a.data.year);
+const STATUS = { 'data-pending': ui.statusPending, 'partly-published': ui.statusPartial, complete: ui.statusComplete };
+const headings = [
+  { depth: 2, slug: 'clinical-experience', text: ui.clinicalHeading },
+  ...rendered.map((s) => ({ depth: 2, slug: s.id, text: s.title })),
+  { depth: 2, slug: 'published-evidence', text: ui.evidenceHeading },
+];
+---
+<Prose {...page.data} {headings}>
+  <Content />
+  <h2 id="clinical-experience">{ui.clinicalHeading}</h2>
+  {rendered.map((s) => (
+    <section class="site" id={s.id}>
+      {s.image && (
+        <figure>
+          <img src={s.image} alt={s.imageAlt} loading="lazy" />
+          {s.imageCredit && <figcaption>{s.imageCredit}</figcaption>}
+        </figure>
+      )}
+      <div>
+        <h3>{s.title}</h3>
+        <p class="site-meta">{s.location} <span class:list={['tag', { pending: s.status !== 'complete' }]}>{STATUS[s.status]}</span></p>
+        <div class="site-body"><s.Body /></div>
+      </div>
+    </section>
+  ))}
+  <h2 id="published-evidence">{ui.evidenceHeading}</h2>
+  <ol class="pubs">
+    {pubs.map(({ data: p }) => (
+      <li id={`pmid-${p.pmid}`}>
+        <p class="pub-year">{p.year}</p>
+        <div>
+          <p class="pub-design">{p.design}</p>
+          <p class="pub-title">{p.title}</p>
+          <p class="pub-findings">{p.findings}</p>
+          <p class="pub-cite">{p.citation} <a href={`https://pubmed.ncbi.nlm.nih.gov/${p.pmid}/`} rel="noopener">PMID {p.pmid}</a>{p.doi && <> · <a href={`https://doi.org/${p.doi}`} rel="noopener">DOI</a></>}</p>
+        </div>
+      </li>
+    ))}
+  </ol>
+</Prose>
+
+<style>
+  .site { display: grid; grid-template-columns: 13rem minmax(0, 1fr); gap: 1.75rem; padding-block: 1.5rem; border-top: 1px solid var(--rule); scroll-margin-top: 1.5rem; }
+  .site figure { margin: 0; }
+  .site img { margin: 0; aspect-ratio: 1; object-fit: cover; }
+  .site figcaption { margin-top: .4rem; font: 400 .6875rem/1.35 var(--sans); color: var(--muted); }
+  .site h3 { margin: 0 0 .5rem; font: 500 1.25rem/1.25 var(--sans); color: var(--navy); }
+  .site-meta { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: center; font: 400 .9375rem/1.3 var(--sans); color: var(--muted); }
+  .site-body { font-size: 1.0625rem; }
+  .pubs { list-style: none; margin: 1.5rem 0 0; padding: 0; font-family: var(--sans); }
+  .pubs li { display: grid; grid-template-columns: 5rem minmax(0, 1fr); gap: 1rem; border-top: 1px solid var(--rule); padding-block: 1.5rem; margin: 0; scroll-margin-top: 1.5rem; }
+  .pubs li:target { background: var(--tint); }
+  .pubs p { margin: 0; }
+  .pub-year { font-size: 1.75rem; font-weight: 300; line-height: 1.1; color: var(--signal); font-feature-settings: 'tnum'; }
+  .pub-design { font-size: .8125rem; color: var(--muted); }
+  .pub-title { margin-top: .25rem !important; font-size: 1.0625rem; font-weight: 500; line-height: 1.3; color: var(--navy); }
+  .pub-findings { margin-top: .6rem !important; font-size: .9375rem; line-height: 1.5; }
+  .pub-cite { margin-top: .6rem !important; font-size: .8125rem; color: var(--muted); line-height: 1.45; }
+  @media (max-width: 640px) {
+    .site { grid-template-columns: 1fr; }
+    .site img { aspect-ratio: 16 / 9; }
+    .pubs li { grid-template-columns: 1fr; gap: .25rem; }
+  }
+</style>

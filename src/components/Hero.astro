@@ -1,0 +1,183 @@
+---
+import { localize } from '../i18n';
+
+const { home, ui, lang } = Astro.props;
+// The four stimulation zones on the plate, as percentages of its width and height: both calves, then both thighs.
+const ZONES = [[27, 62], [57, 63], [31, 31], [61, 29]];
+---
+<section class="hero">
+  <div class="wrap grid">
+    <div class="copy">
+      <h1>{home.heading}</h1>
+      <p class="hero-lede">{home.lede}</p>
+      <p class="links">
+        <a class="primary" href={localize(lang, '/methodology/')}>{home.primaryLink}</a>
+        <a href={localize(lang, '/results/')}>{home.secondaryLink}</a>
+      </p>
+    </div>
+    <figure class="anatomy">
+      <img src="/uploads/hero-legs.jpg" alt="" width="520" height="840" />
+      {ZONES.map(([x, y]) => <i class="glow" style={`left:${x}%;top:${y}%`}></i>)}
+      <span class="mark thigh"><i></i><b>{ui.thighLabel}</b></span>
+      <span class="mark calf"><i></i><b>{ui.calfLabel}</b></span>
+      <figcaption>{ui.heroCredit}</figcaption>
+    </figure>
+  </div>
+  <div class="monitor">
+    <canvas aria-hidden="true"></canvas>
+    <div class="wrap legend">
+      <ol>
+        <li data-step="sense">{ui.timingSense}</li>
+        <li data-step="wait">{ui.timingWait}</li>
+        <li data-step="impulse">{ui.timingImpulse}</li>
+      </ol>
+      <p>{ui.timingNote}</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { CYCLE, QRS, STIM_MS, T_END, ecg } from '../ecg';
+
+  const BEAT_MS = 2000; // Slowed from about 800 ms so that the impulse can be seen.
+  const COLOURS = { trace: '127 212 232', impulse: '255 92 76', line: '255 255 255' };
+
+  const hero = document.querySelector<HTMLElement>('.hero')!;
+  const canvas = hero.querySelector('canvas')!;
+  const ctx = canvas.getContext('2d')!;
+  const steps = [...hero.querySelectorAll<HTMLElement>('[data-step]')];
+  const zones = [...hero.querySelectorAll<HTMLElement>('.glow')];
+  const marks = { calf: hero.querySelector<HTMLElement>('.calf')!, thigh: hero.querySelector<HTMLElement>('.thigh')! };
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const fract = (n: number) => n - Math.floor(n);
+
+  function draw(now: number) {
+    const dpr = devicePixelRatio, w = canvas.clientWidth, h = canvas.clientHeight;
+    if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
+      canvas.width = Math.round(w * dpr);
+      canvas.height = Math.round(h * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+
+    const beats = Math.max(2, Math.round(w / 320)), beatW = w / beats;
+    const head = fract(now / (beats * BEAT_MS)) * w;
+    const position = fract(head / beatW) * CYCLE;
+    const base = h * 0.66, stimBase = h - 6, scale = h / 125;
+    const toX = (beat: number, ms: number) => (beat + ms / CYCLE) * beatW;
+    // 0 at the sweep head, rising to 1 where the trace is about to be overwritten.
+    const age = (x: number) => fract((head - x) / w);
+    const fade = (x: number) => (age(x) > 0.96 ? 0 : (1 - age(x)) ** 1.4);
+
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = `rgb(${COLOURS.line} / .05)`;
+    ctx.beginPath();
+    for (let x = 0; x <= w; x += beatW / 5) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
+    ctx.stroke();
+
+    // The calliper starts at each R wave and follows the sweep until it reaches the impulse.
+    for (let beat = 0; beat < beats; beat++) {
+      const rX = toX(beat, QRS), iX = toX(beat, T_END), iW = (STIM_MS / CYCLE) * beatW;
+      const measuring = age(rX) < age(iX);
+      const a = fade(iX), rA = fade(rX), top = 12;
+      if (rA > 0) {
+        const end = measuring ? head : a > 0 ? iX : rX;
+        ctx.strokeStyle = `rgb(${COLOURS.line} / ${(measuring ? 0.95 : 0.55) * rA})`;
+        ctx.beginPath();
+        ctx.moveTo(rX, top - 4); ctx.lineTo(rX, top + 4);
+        ctx.moveTo(rX, top); ctx.lineTo(end, top);
+        if (measuring) { ctx.moveTo(head, top - 4); ctx.lineTo(head, top + 4); }
+        ctx.stroke();
+      }
+      if (a > 0 && !measuring) {
+        ctx.fillStyle = `rgb(${COLOURS.impulse} / ${0.14 * a})`;
+        ctx.fillRect(iX, top, iW, stimBase - top);
+        ctx.fillStyle = `rgb(${COLOURS.impulse} / ${a})`;
+        ctx.fillRect(iX, stimBase - 16, iW, 16);
+        ctx.strokeStyle = `rgb(${COLOURS.impulse} / ${a})`;
+        ctx.beginPath(); ctx.moveTo(iX, top - 4); ctx.lineTo(iX, stimBase); ctx.stroke();
+      }
+    }
+
+    ctx.strokeStyle = `rgb(${COLOURS.line} / .18)`;
+    ctx.beginPath(); ctx.moveTo(0, stimBase + 0.5); ctx.lineTo(w, stimBase + 0.5); ctx.stroke();
+
+    ctx.lineWidth = 1.75;
+    ctx.lineJoin = 'round';
+    const y = (x: number) => base - ecg(fract(x / beatW) * CYCLE) * scale;
+    for (let x = 0; x < w; x += 2) {
+      const a = fade(x);
+      if (!a) continue;
+      ctx.strokeStyle = `rgb(${COLOURS.trace} / ${a})`;
+      ctx.beginPath(); ctx.moveTo(x, y(x)); ctx.lineTo(x + 2, y(x + 2)); ctx.stroke();
+    }
+    if (!still) {
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(head, y(head), 3, 0, 7); ctx.fill();
+    }
+
+    // The muscles and the caption take their state from the same clock as the trace.
+    const sinceImpulse = position - T_END;
+    const fire = still || sinceImpulse < 0 ? 0 : sinceImpulse <= STIM_MS ? 1 : Math.max(0, 1 - (sinceImpulse - STIM_MS) / 180);
+    // Carousel: each heartbeat stimulates the next of the four zones.
+    const zone = Math.floor(now / BEAT_MS) % zones.length;
+    zones.forEach((el, i) => el.style.setProperty('--fire', i === zone ? fire.toFixed(3) : '0'));
+    marks.calf.style.setProperty('--fire', zone < 2 ? fire.toFixed(3) : '0');
+    marks.thigh.style.setProperty('--fire', zone >= 2 ? fire.toFixed(3) : '0');
+    const step = still ? '' : position < QRS ? '' : position < QRS + 110 ? 'sense' : position < T_END ? 'wait' : position < T_END + 220 ? 'impulse' : '';
+    for (const el of steps) el.toggleAttribute('data-active', el.dataset.step === step);
+  }
+
+  if (still) {
+    draw(0.999 * 8 * BEAT_MS);
+    addEventListener('resize', () => draw(0.999 * 8 * BEAT_MS));
+  } else {
+    let visible = true;
+    new IntersectionObserver(([e]) => (visible = e.isIntersecting)).observe(canvas);
+    const loop = (now: number) => { if (visible) draw(now); requestAnimationFrame(loop); };
+    requestAnimationFrame(loop);
+  }
+</script>
+
+<style>
+  .hero { position: relative; overflow: hidden; background: var(--navy); color: #fff; }
+  .grid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 4fr); gap: 3rem; align-items: end; padding-top: clamp(2rem, 3vw, 2.5rem); }
+  .copy { padding-bottom: 2.5rem; align-self: center; }
+  h1 { font-size: clamp(2.5rem, 6vw, 4.75rem); line-height: 1.04; letter-spacing: -.03em; font-weight: 400; }
+  :lang(ka) h1 { font-size: clamp(2.25rem, 4.5vw, 3.5rem); line-height: 1.2; }
+  .hero-lede { margin: 1.5rem 0 2.25rem; max-width: 50ch; font-size: clamp(1.0625rem, 1.6vw, 1.25rem); line-height: 1.45; color: #c7d6e0; }
+  .links { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; margin: 0; }
+  .links a { color: #fff; }
+  .links a:hover { color: var(--cyan); }
+  .links .primary { background: #fff; color: var(--navy); padding: .7rem 1.2rem; text-decoration: none; font-weight: 500; }
+  .links .primary:hover { background: var(--cyan); color: var(--navy); }
+
+  .anatomy { position: relative; margin: 0; max-width: 19rem; justify-self: end; width: 100%; }
+  .anatomy img { display: block; width: 100%; height: auto; filter: invert(1) brightness(.85) contrast(1.5); mix-blend-mode: screen; mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 92%, transparent); }
+  .anatomy figcaption { position: absolute; right: 0; top: 0; width: 11rem; text-align: right; font-size: .6875rem; line-height: 1.35; color: #8ba3b3; }
+  .glow { position: absolute; width: 24%; aspect-ratio: 1 / 1.7; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(closest-side, rgb(255 92 76 / .85), rgb(255 92 76 / 0)); mix-blend-mode: screen; opacity: var(--fire, 0); pointer-events: none; }
+  .mark { position: absolute; display: flex; align-items: center; left: 61%; font-size: .8125rem; font-weight: 500; white-space: nowrap; }
+  .mark::before { content: ''; order: 1; width: 1.5rem; height: 1px; background: rgb(255 255 255 / .7); }
+  .mark b { order: 2; font-weight: 500; background: var(--navy); padding: .15rem .5rem; }
+  .mark i { width: .625rem; height: .625rem; border-radius: 50%; border: 1.5px solid #fff; background: rgb(255 92 76 / var(--fire, 0)); box-shadow: 0 0 0 calc(var(--fire, 0) * .4rem) rgb(255 92 76 / .3); }
+  .thigh { top: 27%; }
+  .calf { top: 63%; }
+
+  .monitor { position: relative; border-top: 1px solid rgb(255 255 255 / .14); background: #082338; }
+  .monitor canvas { display: block; width: 100%; height: 8.5rem; }
+  .legend { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .4rem 2rem; padding-block: .8rem; border-top: 1px solid rgb(255 255 255 / .1); font-size: .8125rem; }
+  .legend ol { display: flex; flex-wrap: wrap; gap: .4rem 2rem; list-style: none; counter-reset: step; margin: 0; padding: 0; }
+  .legend li { counter-increment: step; color: #7f98aa; }
+  .legend li::before { content: counter(step) '. '; }
+  .legend li[data-active] { color: #fff; }
+  .legend li[data-step='impulse'][data-active] { color: #ff8a7c; font-weight: 500; }
+  .legend p { margin: 0; color: #7f98aa; }
+  @media (max-width: 860px) {
+    .grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    .copy { padding-bottom: 0; }
+    .anatomy { max-width: 15rem; justify-self: start; }
+    .anatomy figcaption { position: static; width: auto; text-align: left; margin-block: .5rem 1.25rem; }
+    .monitor canvas { height: 7rem; }
+    .legend ol { flex-direction: column; }
+  }
+</style>

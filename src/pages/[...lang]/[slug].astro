@@ -1,0 +1,16 @@
+---
+import { render } from 'astro:content';
+import { LOCALES, entry, inLang, slugOf } from '../../i18n';
+import Prose from '../../layouts/Prose.astro';
+
+export async function getStaticPaths() {
+  const slugs = (await inLang('pages', 'en')).map((p) => slugOf(p.id)).filter((s) => !['results', 'articles'].includes(s));
+  return (await Promise.all(LOCALES.flatMap((lang) => slugs.map(async (slug) => ({
+    params: { lang: lang === 'en' ? undefined : lang, slug },
+    props: { page: await entry('pages', lang, slug), slug },
+  })))));
+}
+const { page, slug } = Astro.props;
+const { Content, headings } = await render(page);
+---
+<Prose {...page.data} {headings} timeline={slug === 'history'}><Content /></Prose>

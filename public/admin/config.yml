@@ -1,0 +1,207 @@
+# Editors sign in with GitHub; each save is a commit.
+backend:
+  name: github
+  repo: Haeri/IEC
+  branch: main
+media_folder: public/uploads
+public_folder: /uploads
+# Large photos are shrunk in the browser on upload, so a phone photo cannot slow the site down.
+media_libraries:
+  default:
+    config:
+      transformations:
+        raster_image: { format: webp, quality: 85, width: 1600, height: 1600 }
+
+i18n:
+  structure: multiple_folders
+  locales: [en, ru, ka]
+  default_locale: en
+
+collections:
+  - name: pages
+    label: Pages
+    folder: src/content/pages
+    create: false
+    delete: false
+    format: frontmatter
+    extension: md
+    i18n: true
+    fields:
+      - { name: title, label: Title, widget: string, i18n: true }
+      - { name: description, label: Search engine description, widget: text, maxlength: 200, i18n: true }
+      - { name: lede, label: Intro sentence, widget: text, required: false, i18n: true }
+      - { name: image, label: Picture, widget: image, required: false, i18n: duplicate }
+      - { name: imageAlt, label: Picture description, widget: string, required: false, hint: "Required with a picture, for screen readers and search engines.", i18n: true }
+      - { name: imageCredit, label: Picture credit, widget: string, required: false, i18n: true }
+      - { name: reviewed, label: "Reviewed by a clinician (shows this language to search engines)", widget: boolean, default: false, i18n: true }
+      - { name: body, label: Text, widget: markdown, i18n: true }
+
+  - name: articles
+    label: Articles
+    folder: src/content/articles
+    create: true
+    format: frontmatter
+    extension: md
+    slug: "{{slug}}"
+    sortable_fields: [date, title]
+    i18n: { initial_locales: [en] }
+    fields:
+      - { name: title, label: Title, widget: string, i18n: true }
+      - { name: description, label: Search engine description, widget: text, maxlength: 200, i18n: true }
+      - { name: lede, label: Intro sentence, widget: text, required: false, i18n: true }
+      - { name: date, label: Date, widget: datetime, time_format: false, date_format: "YYYY-MM-DD", i18n: duplicate }
+      - { name: author, label: Author, widget: string, i18n: duplicate }
+      - name: reviewStatus
+        label: Peer review status
+        widget: select
+        i18n: duplicate
+        options:
+          - { label: "Peer reviewed", value: peer-reviewed }
+          - { label: "Author publication, not peer reviewed", value: author-publication }
+      - { name: disclosure, label: Disclosure, widget: text, required: false, i18n: true }
+      - { name: image, label: Picture, widget: image, required: false, i18n: duplicate }
+      - { name: imageAlt, label: Picture description, widget: string, required: false, i18n: true }
+      - { name: imageCredit, label: Picture credit, widget: string, required: false, i18n: true }
+      - { name: reviewed, label: "Reviewed by a clinician (shows this language to search engines)", widget: boolean, default: false, i18n: true }
+      - { name: body, label: Text, widget: markdown, i18n: true }
+
+  - name: results
+    label: Clinical results
+    folder: src/content/results
+    create: true
+    format: frontmatter
+    extension: md
+    slug: "{{slug}}"
+    i18n: true
+    fields:
+      - { name: title, label: Clinic or department, widget: string, i18n: true }
+      - { name: location, label: Location, widget: string, i18n: true }
+      - name: status
+        label: Status
+        widget: select
+        i18n: duplicate
+        options:
+          - { label: "Data pending", value: data-pending }
+          - { label: "Partly published, clinic data pending", value: partly-published }
+          - { label: "Complete", value: complete }
+      - { name: order, label: Order on page, widget: number, value_type: int, i18n: duplicate }
+      - { name: image, label: Picture, widget: image, required: false, i18n: duplicate }
+      - { name: imageAlt, label: Picture description, widget: string, required: false, i18n: true }
+      - { name: imageCredit, label: Picture credit, widget: string, required: false, i18n: true }
+      - { name: body, label: Results, widget: markdown, i18n: true }
+
+  - name: publications
+    label: Publications
+    folder: src/content/publications
+    create: true
+    format: yaml
+    extension: yaml
+    slug: "{{year}}-{{slug}}"
+    identifier_field: title
+    i18n: true
+    fields:
+      - { name: year, label: Year, widget: number, value_type: int, i18n: duplicate }
+      - { name: title, label: Title (original language), widget: string, i18n: duplicate }
+      - { name: citation, label: Citation, widget: text, i18n: duplicate }
+      - { name: design, label: Study design, widget: string, i18n: true }
+      - { name: findings, label: Findings, widget: text, i18n: true }
+      - { name: pmid, label: PubMed ID, widget: string, i18n: duplicate }
+      - { name: doi, label: DOI, widget: string, required: false, i18n: duplicate }
+
+  - name: settings
+    label: Home page and labels
+    format: yaml
+    i18n: true
+    files:
+      - name: home
+        label: Home page
+        file: "src/content/settings/{{locale}}/home.yaml"
+        i18n: true
+        fields:
+          - { name: title, label: Title, widget: string, i18n: true }
+          - { name: description, label: Search engine description, widget: text, maxlength: 200, i18n: true }
+          - { name: reviewed, label: "Reviewed by a clinician (shows this language to search engines)", widget: boolean, default: false, i18n: true }
+          - { name: heading, label: Main heading, widget: string, i18n: true }
+          - { name: lede, label: Intro sentence, widget: text, i18n: true }
+          - { name: primaryLink, label: Main button, widget: string, i18n: true }
+          - { name: secondaryLink, label: Second link, widget: string, i18n: true }
+          - { name: howHeading, label: "\"How it works\" heading", widget: string, i18n: true }
+          - name: steps
+            label: Steps
+            widget: list
+            i18n: true
+            fields:
+              - { name: title, label: Title, widget: string, i18n: true }
+              - { name: text, label: Text, widget: text, i18n: true }
+          - { name: figuresHeading, label: Findings heading, widget: string, i18n: true }
+          - name: figures
+            label: Key figures
+            widget: list
+            i18n: true
+            fields:
+              - { name: value, label: Value, widget: string, i18n: true }
+              - { name: label, label: Meaning, widget: text, i18n: true }
+              - { name: source, label: Source, widget: text, i18n: true }
+          - { name: figuresNote, label: Note under figures, widget: string, i18n: true }
+          - { name: figuresLink, label: Link under figures, widget: string, i18n: true }
+          - { name: sectionsHeading, label: Sections heading, widget: string, i18n: true }
+          - { name: latestHeading, label: Latest articles heading, widget: string, i18n: true }
+          - name: sections
+            label: Site sections
+            widget: list
+            i18n: true
+            fields:
+              - { name: title, label: Title, widget: string, i18n: true }
+              - { name: href, label: Link, widget: string, i18n: true }
+              - { name: image, label: Picture, widget: image, i18n: true }
+              - { name: summary, label: Summary, widget: string, i18n: true }
+      - name: ui
+        label: Labels and menus
+        file: "src/content/settings/{{locale}}/ui.yaml"
+        i18n: true
+        fields:
+          - { name: siteName, label: Site name, widget: string, i18n: true }
+          - { name: homeTitleSuffix, label: Home page title ending, widget: string, i18n: true }
+          - { name: navHistory, label: "Menu: History", widget: string, i18n: true }
+          - { name: navComparison, label: "Menu: MCP and ECP", widget: string, i18n: true }
+          - { name: navApplications, label: "Menu: Applications", widget: string, i18n: true }
+          - { name: navMethodology, label: "Menu: Methodology", widget: string, i18n: true }
+          - { name: navResults, label: "Menu: Results", widget: string, i18n: true }
+          - { name: navArticles, label: "Menu: Articles", widget: string, i18n: true }
+          - { name: navTraining, label: "Menu: Treatment and training", widget: string, i18n: true }
+          - { name: navAbout, label: "Menu: About", widget: string, i18n: true }
+          - { name: skipLink, label: Skip link, widget: string, i18n: true }
+          - { name: languageLabel, label: Language label, widget: string, i18n: true }
+          - { name: footerText, label: Footer text, widget: text, i18n: true }
+          - { name: footerSite, label: "Footer: site heading", widget: string, i18n: true }
+          - { name: footerLegal, label: "Footer: legal heading", widget: string, i18n: true }
+          - { name: navImpressum, label: "Footer: Impressum", widget: string, i18n: true }
+          - { name: navPrivacy, label: "Footer: Privacy", widget: string, i18n: true }
+          - { name: navNotice, label: "Footer: Medical notice", widget: string, i18n: true }
+          - { name: pubmedLink, label: "Footer: PubMed link", widget: string, i18n: true }
+          - { name: rightsReserved, label: "Footer: rights", widget: string, i18n: true }
+          - { name: timingSense, label: "Animation step 1", widget: string, i18n: true }
+          - { name: timingWait, label: "Animation step 2", widget: string, i18n: true }
+          - { name: timingImpulse, label: "Animation step 3", widget: string, i18n: true }
+          - { name: timingNote, label: "Animation note", widget: string, i18n: true }
+          - { name: onThisPage, label: "\"On this page\"", widget: string, i18n: true }
+          - { name: thighLabel, label: Thigh label, widget: string, i18n: true }
+          - { name: calfLabel, label: Calf label, widget: string, i18n: true }
+          - { name: heroCredit, label: Home picture credit, widget: string, i18n: true }
+          - { name: systole, label: Systole, widget: string, i18n: true }
+          - { name: diastole, label: Diastole, widget: string, i18n: true }
+          - { name: stimulus, label: Stimulus, widget: string, i18n: true }
+          - { name: figureTitle, label: Figure title, widget: string, i18n: true }
+          - { name: figureDescription, label: Figure description, widget: text, i18n: true }
+          - { name: figureLabel, label: Figure number, widget: string, i18n: true }
+          - { name: figureCaption, label: Figure caption, widget: text, i18n: true }
+          - { name: clinicalHeading, label: Clinical experience heading, widget: string, i18n: true }
+          - { name: evidenceHeading, label: Published evidence heading, widget: string, i18n: true }
+          - { name: statusPending, label: "Status: pending", widget: string, i18n: true }
+          - { name: statusPartial, label: "Status: partly published", widget: string, i18n: true }
+          - { name: statusComplete, label: "Status: complete", widget: string, i18n: true }
+          - { name: peerReviewed, label: "Peer reviewed", widget: string, i18n: true }
+          - { name: authorPublication, label: "Author publication", widget: string, i18n: true }
+          - { name: authorNoticeTitle, label: Author notice title, widget: string, i18n: true }
+          - { name: authorNotice, label: Author notice, widget: string, i18n: true }
+          - { name: disclosureTitle, label: Disclosure title, widget: string, i18n: true }

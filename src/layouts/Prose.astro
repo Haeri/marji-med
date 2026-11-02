@@ -1,0 +1,43 @@
+---
+import { entry, type Lang } from '../i18n';
+import Base from './Base.astro';
+
+interface Props {
+  title: string; description: string; lede?: string; reviewed: boolean; jsonLd?: object; langs?: readonly Lang[];
+  image?: string; imageAlt?: string; imageCredit?: string; timeline?: boolean;
+  headings?: { depth: number; slug: string; text: string }[];
+}
+const { title, description, lede, reviewed, jsonLd, langs, image, imageAlt, imageCredit, timeline, headings = [] } = Astro.props;
+if (image && !imageAlt) throw new Error(`Image without alt text on page "${title}"`);
+const lang = (Astro.params.lang ?? 'en') as Lang;
+const ui = (await entry('ui', lang, 'ui')).data;
+const toc = headings.filter((h) => h.depth === 2);
+---
+<Base {title} {description} {reviewed} {jsonLd} {langs}>
+  <article>
+    <header class="page-head">
+      <div class:list={['wrap', { 'with-image': image }]}>
+        <div class="head-copy">
+          <h1>{title}</h1>
+          {lede && <p class="lede">{lede}</p>}
+          <slot name="meta" />
+        </div>
+        {image && (
+          <figure class="head-image">
+            <img src={image} alt={imageAlt} />
+            {imageCredit && <figcaption>{imageCredit}</figcaption>}
+          </figure>
+        )}
+      </div>
+    </header>
+    <div class="wrap page-body">
+      {toc.length > 1 && (
+        <nav class="toc" aria-label={ui.onThisPage}>
+          <p>{ui.onThisPage}</p>
+          <ol>{toc.map((h) => <li><a href={`#${h.slug}`}>{h.text}</a></li>)}</ol>
+        </nav>
+      )}
+      <div class:list={['prose', { timeline }]}><slot /></div>
+    </div>
+  </article>
+</Base>

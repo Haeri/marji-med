@@ -1,0 +1,45 @@
+siteName: Muscular Counterpulsation
+homeTitleSuffix: non-invasive circulatory support
+navHistory: History
+navComparison: MCP and ECP
+navApplications: Applications
+navMethodology: Methodology
+navResults: Results
+navArticles: Articles
+navAbout: About
+skipLink: Skip to content
+languageLabel: Language
+footerText: Scientific and educational information for healthcare professionals and researchers. It is not medical advice and does not replace consultation with a qualified clinician.
+onThisPage: On this page
+thighLabel: Thigh muscles
+calfLabel: Calf muscles
+heroCredit: "Andreas Vesalius, De humani corporis fabrica. Wellcome Collection, CC BY 4.0."
+systole: Systole
+diastole: Diastole
+stimulus: Stimulus
+figureTitle: Timing of muscular counterpulsation within the cardiac cycle
+figureDescription: An ECG trace over three heartbeats. After each T wave, in early diastole, a short electrical stimulus is delivered to the calf and thigh muscles.
+figureLabel: Fig. 1.
+figureCaption: "Stimulation follows the R wave after a set delay, the K-factor, and falls in early diastole. Schematic: amplitudes are illustrative. Timing as described in Tozzi 2004 and Lapanashvili 2008; 75 ms stimulus train from the animal study by Walpoth 2007."
+clinicalHeading: Clinical experience
+evidenceHeading: Published evidence
+statusPending: Data pending
+statusPartial: Partly published, clinic data pending
+statusComplete: Complete
+peerReviewed: Peer reviewed
+authorPublication: Author publication, not peer reviewed
+authorNoticeTitle: Author publication.
+authorNotice: This article has not undergone journal peer review.
+disclosureTitle: Disclosure.
+footerSite: "Contents"
+footerLegal: "Legal and sources"
+navImpressum: "Impressum"
+navPrivacy: "Privacy notice"
+navNotice: "Medical and regulatory notice"
+pubmedLink: "Publications on PubMed"
+rightsReserved: "All rights reserved."
+timingSense: "ECG detects the R wave"
+timingWait: "Set delay from the R wave (K-factor)"
+timingImpulse: "Impulse in early diastole"
+timingNote: "One muscle zone per heartbeat. Slowed for illustration."
+navTraining: "Treatment and training"

@@ -1,0 +1,34 @@
+---
+import { render } from 'astro:content';
+import { entry, formatDate, inLang, langPaths, localize, slugOf, type Lang } from '../../../i18n';
+import Prose from '../../../layouts/Prose.astro';
+
+export const getStaticPaths = langPaths;
+const lang = Astro.props.lang as Lang;
+const ui = (await entry('ui', lang, 'ui')).data;
+const page = await entry('pages', lang, 'articles');
+const { Content } = await render(page);
+const articles = (await inLang('articles', lang)).sort((a, b) => +b.data.date - +a.data.date);
+---
+<Prose {...page.data}>
+  <Content />
+  <ol class="list">
+    {articles.map((a) => (
+      <li>
+        <p class="meta">{formatDate(a.data.date, lang)} · {a.data.reviewStatus === 'peer-reviewed' ? ui.peerReviewed : ui.authorPublication}</p>
+        <h2><a href={localize(lang, `/articles/${slugOf(a.id)}/`)}>{a.data.title}</a></h2>
+        <p>{a.data.description}</p>
+      </li>
+    ))}
+  </ol>
+</Prose>
+
+<style>
+  .list { list-style: none; margin: 2rem 0 0; padding: 0; }
+  .list li { border-top: 1px solid var(--rule); padding-block: 1.5rem; margin: 0; }
+  .list p { margin: 0; }
+  .list h2 { margin: .35rem 0 .5rem; font-size: 1.375rem; }
+  .list h2 a { color: var(--navy); text-decoration: none; }
+  .list h2 a:hover { text-decoration: underline; text-decoration-thickness: 1px; }
+  .meta { font: 400 .8125rem/1.4 var(--sans); color: var(--muted); }
+</style>

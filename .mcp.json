@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "mcp-site-content": { "command": "node", "args": ["mcp/server.mjs"] }
+  }
+}
