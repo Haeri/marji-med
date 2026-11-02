@@ -1,8 +1,8 @@
 title: Muscular Counterpulsation
-description: "Muscular counterpulsation (MCP) is a non-invasive, ECG-triggered method of circulatory support. History, methodology, applications and clinical results."
+description: Muscular counterpulsation (MCP) is a non-invasive, ECG-triggered method of circulatory support. History, methodology, applications and clinical results.
 reviewed: false
 heading: Circulatory support through the body’s own muscles
-lede: "Muscular counterpulsation (MCP) is a non-invasive, ECG-triggered method. Skin electrodes produce light contractions of the calf and thigh muscles in early diastole, driven by a battery-powered portable device."
+lede: Muscular counterpulsation (MCP) is a non-invasive, ECG-triggered method. Skin electrodes produce light contractions of the calf muscles in early diastole, driven by a battery-powered portable device.
 primaryLink: How it is applied
 secondaryLink: See the results
 howHeading: How it works
@@ -15,16 +15,16 @@ steps:
     text: The contracting muscles compress peripheral arteries and veins during diastole. Published studies report lower systemic vascular resistance.
 figuresHeading: Published findings
 figures:
-  - value: "−36%"
-    label: "Systemic vascular resistance after bypass surgery with MCP, compared with −16% in controls"
-    source: "Lapanashvili et al., J Card Surg 2009. Randomised, n = 50. p < 0.001 in the MCP group."
-  - value: "28%"
-    label: "Shorter postoperative hospital stay: 12.0 days with MCP, 16.8 days in controls"
-    source: "Lapanashvili et al., J Card Surg 2009. Randomised, n = 50. p < 0.001."
-  - value: "+21%"
-    label: "Mean ejection fraction after eight days of MCP in heart failure with EF below 40%"
-    source: "Lapanashvili et al., Int J Artif Organs 2008. n = 35 in this group (21 MCP, 14 controls). p < 0.001."
-figuresNote: "Findings from small clinical studies, reported as published."
+  - value: −36%
+    label: Systemic vascular resistance after bypass surgery with MCP, compared with −16% in controls
+    source: Lapanashvili et al., J Card Surg 2009. Randomised, n = 50. p < 0.001 in the MCP group.
+  - value: 28%
+    label: 'Shorter postoperative hospital stay: 12.0 days with MCP, 16.8 days in controls'
+    source: Lapanashvili et al., J Card Surg 2009. Randomised, n = 50. p < 0.001.
+  - value: +21%
+    label: Mean ejection fraction after eight days of MCP in heart failure with EF below 40%
+    source: Lapanashvili et al., Int J Artif Organs 2008. n = 35 in this group (21 MCP, 14 controls). p < 0.001.
+figuresNote: Findings from small clinical studies, reported as published.
 figuresLink: All results and sources
 sectionsHeading: Explore
 latestHeading: Latest articles
