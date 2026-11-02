@@ -1,7 +1,7 @@
 # Editors sign in with GitHub; each save is a commit.
 backend:
   name: github
-  repo: Haeri/IEC
+  repo: Haeri/marji-med
   branch: main
 media_folder: public/uploads
 public_folder: /uploads
